@@ -20,11 +20,11 @@
         },
         {
             "source": "/(.*)",
-            "destination": "/frontend/dist/$1"
+            "destination": "/frontend/$1"
         },
         {
             "source": "/(.*)",
-            "destination": "/frontend/dist/index.html"
+            "destination": "/frontend/index.html"
         }
     ]
 }
