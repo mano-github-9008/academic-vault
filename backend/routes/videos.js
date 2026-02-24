@@ -69,6 +69,7 @@ router.post('/', async (req, res) => {
 
 // DELETE /api/videos/:id
 router.delete('/:id', async (req, res) => {
+    if (!supabase) return res.status(503).json({ error: 'Database service unavailable' });
     try {
         const { id } = req.params;
 

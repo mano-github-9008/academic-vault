@@ -21,6 +21,7 @@ const upload = multer({
 
 // GET /api/resources — list resources (optional filters: semester, search)
 router.get('/', async (req, res) => {
+    if (!supabase) return res.status(503).json({ error: 'Database service unavailable' });
     try {
         const { semester, search, category } = req.query;
 
@@ -56,6 +57,7 @@ router.get('/', async (req, res) => {
 
 // POST /api/resources/upload — file upload (now public)
 router.post('/upload', upload.single('file'), async (req, res) => {
+    if (!supabase) return res.status(503).json({ error: 'Database service unavailable' });
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'No file provided' });
@@ -120,6 +122,7 @@ router.post('/upload', upload.single('file'), async (req, res) => {
 
 // GET /api/resources/download/:id — generate a temporary signed URL
 router.get('/download/:id', async (req, res) => {
+    if (!supabase) return res.status(503).json({ error: 'Database service unavailable' });
     try {
         const { id } = req.params;
 
@@ -155,6 +158,7 @@ router.get('/download/:id', async (req, res) => {
 
 // DELETE /api/resources/:id — file delete (now public)
 router.delete('/:id', async (req, res) => {
+    if (!supabase) return res.status(503).json({ error: 'Database service unavailable' });
     try {
         const { id } = req.params;
 

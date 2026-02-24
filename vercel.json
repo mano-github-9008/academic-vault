@@ -19,11 +19,11 @@
             "destination": "/backend/index.js"
         },
         {
-            "source": "/(.*)",
-            "destination": "/frontend/$1"
+            "source": "/assets/(.*)",
+            "destination": "/frontend/assets/$1"
         },
         {
-            "source": "/(.*)",
+            "source": "/((?!api/).*)",
             "destination": "/frontend/index.html"
         }
     ]
