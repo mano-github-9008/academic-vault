@@ -123,7 +123,11 @@ export default function AdminDashboard() {
                 body: formData
             });
 
-            if (!res.ok) throw new Error('Cataloging failed');
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.details || data.error || 'Cataloging failed');
+            }
 
             toast.success('Resource integrated');
             setTitle('');
@@ -132,7 +136,7 @@ export default function AdminDashboard() {
             setSelectedFile(null);
             fetchData();
         } catch (err) {
-            toast.error('Upload sequence failed');
+            toast.error(err.message);
         } finally {
             setUploading(false);
         }
