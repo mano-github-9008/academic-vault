@@ -30,8 +30,11 @@ app.use('/api/videos', videoRoutes);
 
 // Global error handler
 app.use((err, req, res, next) => {
-    console.error('Unhandled error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Unhandled error at:', req.path, err);
+    res.status(err.status || 500).json({
+        error: err.message || 'Internal server error',
+        path: req.path
+    });
 });
 
 // Start server (local dev only — Vercel uses the exported app)
