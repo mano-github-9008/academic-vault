@@ -40,6 +40,7 @@ app.get('/api/health', async (req, res) => {
         res.json({
             status: 'ok',
             timestamp: new Date().toISOString(),
+            deploy_id: '1771954402665', // Unique ID to track deployment
             database: !error,
             db_detail: error ? error.message : 'Connection successful'
         });
