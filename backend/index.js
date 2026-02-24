@@ -21,7 +21,11 @@ app.get('/', (req, res) => {
 });
 
 app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+    res.json({
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        database: !!require('./lib/supabase') // Returns true if supabase client is initialized
+    });
 });
 
 // Routes

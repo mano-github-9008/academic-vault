@@ -56,8 +56,20 @@ router.get('/', async (req, res) => {
 });
 
 // POST /api/resources/upload — file upload (now public)
-router.post('/upload', upload.single('file'), async (req, res) => {
+router.post('/upload', (req, res, next) => {
     if (!supabase) return res.status(503).json({ error: 'Database service unavailable' });
+
+    upload.single('file')(req, res, (err) => {
+        if (err instanceof multer.MulterError) {
+            console.error('MULTER ERROR:', err);
+            return res.status(400).json({ error: 'File upload error', details: err.message });
+        } else if (err) {
+            console.error('UNKNOWN UPLOAD ERROR:', err);
+            return res.status(500).json({ error: 'Upload initialization failed', details: err.message });
+        }
+        next();
+    });
+}, async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'No file provided' });
