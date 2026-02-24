@@ -4,6 +4,7 @@ const supabase = require('../lib/supabase');
 
 // GET /api/videos — list videos (optional filters: semester, search)
 router.get('/', async (req, res) => {
+    if (!supabase) return res.status(503).json({ error: 'Database service unavailable' });
     try {
         const { semester, search, subject } = req.query;
 
@@ -38,6 +39,7 @@ router.get('/', async (req, res) => {
 
 // POST /api/videos — add video metadata
 router.post('/', async (req, res) => {
+    if (!supabase) return res.status(503).json({ error: 'Database service unavailable' });
     try {
         const { title, url, subject, semester } = req.body;
 
