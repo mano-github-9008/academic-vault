@@ -62,7 +62,7 @@ export default function Sidebar({ isOpen, onClose }) {
                                 <HiOutlineAcademicCap className="w-6 h-6 text-white" />
                             </div>
                             <div>
-                                <h1 className="text-lg font-bold text-slate-900 uppercase tracking-tight">Academic Vault</h1>
+                                <h1 className="text-lg font-bold text-slate-900 uppercase tracking-tight">Node Share</h1>
                                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Repository</p>
                             </div>
                         </div>
@@ -124,7 +124,7 @@ export default function Sidebar({ isOpen, onClose }) {
                     <div className="p-6 border-t border-slate-100">
                         <div className="bg-slate-50 rounded-xl p-4">
                             <p className="text-[10px] text-center text-slate-500 font-bold uppercase tracking-wider">
-                                &copy; 2024 ACADEMIC VAULT
+                                &copy; 2026 NODE SHARE
                             </p>
                             <p className="text-[9px] text-center text-slate-400 mt-1 uppercase tracking-tight">
                                 OPEN SOURCE REPOSITORY

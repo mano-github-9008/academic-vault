@@ -8,7 +8,7 @@ export function AdminProvider({ children }) {
     });
 
     const login = (username, password) => {
-        if (username === 'Aamin' && password === 'MANO@9008') {
+        if (username === 'Admin' && password === 'MANO@9008') {
             setIsAdmin(true);
             localStorage.setItem('admin_session', 'active');
             return true;
