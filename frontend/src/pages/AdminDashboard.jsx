@@ -123,10 +123,15 @@ export default function AdminDashboard() {
                 body: formData
             });
 
-            const data = await res.json();
-
             if (!res.ok) {
-                throw new Error(data.details || data.error || 'Cataloging failed');
+                let errorMsg = 'Cataloging failed';
+                try {
+                    const data = await res.json();
+                    errorMsg = data.details || data.error || errorMsg;
+                } catch (e) {
+                    errorMsg = `Server error: ${res.status} ${res.statusText}`;
+                }
+                throw new Error(errorMsg);
             }
 
             toast.success('Resource integrated');
