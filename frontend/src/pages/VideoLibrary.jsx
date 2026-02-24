@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import { HiOutlineVideoCamera, HiOutlineSearch, HiOutlineFolder, HiOutlinePlay, HiOutlineX } from 'react-icons/hi';
 import toast from 'react-hot-toast';
 
-const API_URL = import.meta.env.VITE_API_URL || '';
+const API_URL = import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL !== '/'
+    ? import.meta.env.VITE_API_URL.replace(/\/$/, '')
+    : '';
 
 const semesters = [1, 2, 3, 4, 5, 6, 7, 8];
 

@@ -11,7 +11,9 @@ import {
 } from 'react-icons/hi';
 import toast from 'react-hot-toast';
 
-const API_URL = import.meta.env.VITE_API_URL || '';
+const API_URL = import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL !== '/'
+    ? import.meta.env.VITE_API_URL.replace(/\/$/, '')
+    : '';
 
 const semesterNames = {
     1: 'First', 2: 'Second', 3: 'Third', 4: 'Fourth',
