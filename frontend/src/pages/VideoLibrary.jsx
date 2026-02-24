@@ -2,9 +2,7 @@ import { useState, useEffect } from 'react';
 import { HiOutlineVideoCamera, HiOutlineSearch, HiOutlineFolder, HiOutlinePlay, HiOutlineX } from 'react-icons/hi';
 import toast from 'react-hot-toast';
 
-const API_URL = import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL !== '/'
-    ? import.meta.env.VITE_API_URL.replace(/\/$/, '')
-    : '';
+const API_URL = '';
 
 const semesters = [1, 2, 3, 4, 5, 6, 7, 8];
 
@@ -22,7 +20,7 @@ export default function VideoLibrary() {
     const fetchVideos = async () => {
         setLoading(true);
         try {
-            const res = await fetch(`${API_URL}/api/videos`);
+            const res = await fetch(`/api/videos`);
             const data = await res.json();
             if (res.ok && Array.isArray(data)) {
                 setVideos(data);

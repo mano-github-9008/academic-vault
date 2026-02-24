@@ -14,9 +14,7 @@ import {
 } from 'react-icons/hi';
 import toast from 'react-hot-toast';
 
-const API_URL = import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL !== '/'
-    ? import.meta.env.VITE_API_URL.replace(/\/$/, '')
-    : '';
+const API_URL = '';
 
 const categories = ['General', 'Notes', 'Assignments', 'Lab Reports', 'Question Papers', 'Syllabus', 'Reference Material'];
 
@@ -64,8 +62,8 @@ export default function AdminDashboard() {
         setLoading(true);
         try {
             const [resResources, resVideos] = await Promise.all([
-                fetch(`${API_URL}/api/resources`),
-                fetch(`${API_URL}/api/videos`)
+                fetch(`/api/resources`),
+                fetch(`/api/videos`)
             ]);
 
             if (resResources.ok) setResources(await resResources.json());
@@ -120,7 +118,7 @@ export default function AdminDashboard() {
             formData.append('semester', semester);
             formData.append('category', category);
 
-            const res = await fetch(`${API_URL}/api/resources/upload`, {
+            const res = await fetch(`/api/resources/upload`, {
                 method: 'POST',
                 body: formData
             });
@@ -144,7 +142,7 @@ export default function AdminDashboard() {
         e.preventDefault();
         setRegistering(true);
         try {
-            const res = await fetch(`${API_URL}/api/videos`, {
+            const res = await fetch(`/api/videos`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -172,7 +170,7 @@ export default function AdminDashboard() {
 
     const handleDeleteResource = async (id) => {
         try {
-            const res = await fetch(`${API_URL}/api/resources/${id}`, { method: 'DELETE' });
+            const res = await fetch(`/api/resources/${id}`, { method: 'DELETE' });
             if (!res.ok) throw new Error('Defragmentation failed');
             toast.success('Bit purged');
             fetchData();
@@ -183,7 +181,7 @@ export default function AdminDashboard() {
 
     const handleDeleteVideo = async (id) => {
         try {
-            const res = await fetch(`${API_URL}/api/videos/${id}`, { method: 'DELETE' });
+            const res = await fetch(`/api/videos/${id}`, { method: 'DELETE' });
             if (!res.ok) throw new Error('Defragmentation failed');
             toast.success('Stream removed');
             fetchData();

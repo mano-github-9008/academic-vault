@@ -11,9 +11,8 @@ import {
 } from 'react-icons/hi';
 import toast from 'react-hot-toast';
 
-const API_URL = import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL !== '/'
-    ? import.meta.env.VITE_API_URL.replace(/\/$/, '')
-    : '';
+// API_URL is now standardized to use relative paths for better compatibility
+const API_URL = '';
 
 const semesterNames = {
     1: 'First', 2: 'Second', 3: 'Third', 4: 'Fourth',
@@ -59,7 +58,7 @@ export default function SemesterPage() {
     const fetchResources = async () => {
         setLoading(true);
         try {
-            const res = await fetch(`${API_URL}/api/resources?semester=${semesterId}`);
+            const res = await fetch(`/api/resources?semester=${semesterId}`);
             if (!res.ok) throw new Error('Failed to fetch');
             const data = await res.json();
             setResources(data);
@@ -74,7 +73,7 @@ export default function SemesterPage() {
     const handleDownload = async (resource) => {
         setDownloading(resource.id);
         try {
-            const res = await fetch(`${API_URL}/api/resources/download/${resource.id}`);
+            const res = await fetch(`/api/resources/download/${resource.id}`);
             if (!res.ok) throw new Error('Failed to get download URL');
             const { url, fileName } = await res.json();
 
