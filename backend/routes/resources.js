@@ -7,7 +7,7 @@ const supabase = require('../lib/supabase');
 // Multer config — store files in memory for streaming to Supabase
 const upload = multer({
     storage: multer.memoryStorage(),
-    limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB max
+    limits: { fileSize: 4.5 * 1024 * 1024 }, // 4.5 MB Vercel Limit
     fileFilter: (req, file, cb) => {
         const allowed = ['.pdf', '.docx', '.doc', '.pptx', '.ppt', '.xlsx', '.xls', '.txt', '.zip'];
         const ext = path.extname(file.originalname).toLowerCase();
