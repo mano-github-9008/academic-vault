@@ -80,6 +80,7 @@ router.post('/upload', upload.single('file'), async (req, res) => {
         const storagePath = `semester-${semesterNum}/${timestamp}-${req.file.originalname}`;
 
         // Upload file to Supabase Storage
+        console.log('Initiating Supabase storage upload for:', storagePath);
         const { data: uploadData, error: uploadError } = await supabase.storage
             .from('academic-files')
             .upload(storagePath, req.file.buffer, {
@@ -88,8 +89,12 @@ router.post('/upload', upload.single('file'), async (req, res) => {
             });
 
         if (uploadError) {
-            console.error('Storage upload error:', uploadError);
-            return res.status(500).json({ error: 'Failed to upload file to storage' });
+            console.error('SUPABASE STORAGE ERROR:', JSON.stringify(uploadError, null, 2));
+            return res.status(500).json({
+                error: 'Failed to upload file to storage',
+                details: uploadError.message,
+                code: uploadError.code
+            });
         }
 
         // Insert metadata into resources table
@@ -108,15 +113,22 @@ router.post('/upload', upload.single('file'), async (req, res) => {
             .single();
 
         if (dbError) {
+            console.error('SUPABASE DB ERROR:', JSON.stringify(dbError, null, 2));
             // Rollback: delete the uploaded file if DB insert fails
             await supabase.storage.from('academic-files').remove([storagePath]);
-            return res.status(500).json({ error: 'Failed to save resource metadata' });
+            return res.status(500).json({
+                error: 'Failed to save resource metadata',
+                details: dbError.message
+            });
         }
 
         res.status(201).json(resource);
     } catch (err) {
-        console.error('Upload error:', err);
-        res.status(500).json({ error: err.message || 'Upload failed' });
+        console.error('GENERAL UPLOAD EXCEPTION:', err);
+        res.status(500).json({
+            error: 'Upload failed',
+            details: err.message
+        });
     }
 });
 
