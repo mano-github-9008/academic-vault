@@ -36,13 +36,22 @@ app.get('/', (req, res) => {
 app.get('/api/health', async (req, res) => {
     try {
         const supabase = require('./lib/supabase');
-        const { data, error } = await supabase.from('resources').select('id').limit(1);
+
+        // Check DB
+        const { data: dbData, error: dbError } = await supabase.from('resources').select('id').limit(1);
+
+        // Check Storage
+        const { data: buckets, error: storageError } = await supabase.storage.listBuckets();
+        const bucketExists = buckets?.some(b => b.name === 'academic-files');
+
         res.json({
             status: 'ok',
             timestamp: new Date().toISOString(),
-            deploy_id: '1771954402665', // Unique ID to track deployment
-            database: !error,
-            db_detail: error ? error.message : 'Connection successful'
+            deploy_id: '1771954402665v2',
+            database: !dbError,
+            storage: bucketExists,
+            storage_error: storageError ? storageError.message : (bucketExists ? null : 'Bucket "academic-files" not found'),
+            db_detail: dbError ? dbError.message : 'Connection successful'
         });
     } catch (err) {
         res.status(500).json({ status: 'error', message: err.message });
