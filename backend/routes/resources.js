@@ -91,8 +91,12 @@ router.post('/upload', (req, res, next) => {
 
         // Generate a unique file path in storage
         const ext = path.extname(req.file.originalname);
+        const baseName = path.basename(req.file.originalname, ext)
+            .replace(/[\[\]{}()<>|\\^%`'"]/g, '') // Remove brackets and symbols that cause "Invalid key"
+            .replace(/\s+/g, '_'); // Replace spaces with underscores for cleaner URLs
+
         const timestamp = Date.now();
-        const storagePath = `semester-${semesterNum}/${timestamp}-${req.file.originalname}`;
+        const storagePath = `semester-${semesterNum}/${timestamp}-${baseName}${ext}`;
 
         // Upload file to Supabase Storage
         console.log('Initiating Supabase storage upload for:', storagePath);
