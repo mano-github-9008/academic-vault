@@ -57,6 +57,9 @@ router.get('/', async (req, res) => {
 
 // POST /api/resources/upload — file upload (now public)
 router.post('/upload', (req, res, next) => {
+    console.log('--- UPLOAD REQUEST INITIATED ---');
+    console.log('Headers:', JSON.stringify(req.headers, null, 2));
+
     if (!supabase) return res.status(503).json({ error: 'Database service unavailable' });
 
     upload.single('file')(req, res, (err) => {
