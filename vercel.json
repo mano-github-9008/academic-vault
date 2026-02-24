@@ -19,7 +19,15 @@
             "destination": "backend/index.js"
         },
         {
-            "source": "/((?!api/|.*\\.).*)",
+            "source": "/assets/(.*)",
+            "destination": "frontend/assets/$1"
+        },
+        {
+            "source": "/(.*\\.(js|css|png|jpg|svg|ico|json|txt))",
+            "destination": "frontend/$1"
+        },
+        {
+            "source": "/((?!api/).*)",
             "destination": "frontend/index.html"
         }
     ]
