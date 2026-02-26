@@ -432,6 +432,9 @@ export default function AdminDashboard() {
 
                 </div>
             </div>
+            <div className="flex justify-center pt-12 pb-8">
+                <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest bg-slate-50 px-4 py-2 rounded-full border border-slate-100/50">Build v2.5.1rc - Multi-Sync Active</p>
+            </div>
         </div>
     );
 }
