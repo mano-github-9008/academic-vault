@@ -45,8 +45,8 @@ export default function AdminDashboard() {
     // Bulk File Upload State
     const [semester, setSemester] = useState('1');
     const [category, setCategory] = useState('General');
-    const [selectedFiles, setSelectedFiles] = useState([]); // Multiple files
-    const [uploadProgress, setUploadProgress] = useState({}); // Track individual file status
+    const [selectedFiles, setSelectedFiles] = useState([]); 
+    const [uploadProgress, setUploadProgress] = useState({}); 
 
     // Bulk Delete State
     const [selectedResourceIds, setSelectedResourceIds] = useState([]);
@@ -239,7 +239,6 @@ export default function AdminDashboard() {
 
     return (
         <div className="page-enter space-y-12 pb-32">
-            {/* Header Bento Module */}
             <div className="bento-card p-12 bg-slate-900 relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 opacity-50" />
                 <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform duration-700" />
@@ -250,11 +249,7 @@ export default function AdminDashboard() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-
-                {/* INGESTION UNIT - 5 cols */}
                 <div className="lg:col-span-5 space-y-8 h-full">
-
-                    {/* File Cataloger */}
                     <div className="bento-card p-8">
                         <div className="flex items-center gap-4 mb-8">
                             <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
@@ -312,7 +307,6 @@ export default function AdminDashboard() {
                         </form>
                     </div>
 
-                    {/* Video Registrar */}
                     <div className="bento-card p-8">
                         <div className="flex items-center gap-4 mb-8">
                             <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600">
@@ -353,10 +347,7 @@ export default function AdminDashboard() {
                     </div>
                 </div>
 
-                {/* ARCHIVE MONITOR - 7 cols */}
                 <div className="lg:col-span-7 space-y-8">
-
-                    {/* Catalog Monitor */}
                     <div className="bento-card overflow-hidden">
                         <div className="p-8 border-b border-slate-50 flex items-center justify-between bg-white sticky top-0 z-20">
                             <div className="flex items-center gap-4">
@@ -403,7 +394,6 @@ export default function AdminDashboard() {
                         </div>
                     </div>
 
-                    {/* Stream Monitor */}
                     <div className="bento-card overflow-hidden">
                         <div className="p-8 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
                             <h2 className="text-sm font-black text-slate-900 uppercase tracking-[0.2em]">Stream Index</h2>
@@ -429,13 +419,11 @@ export default function AdminDashboard() {
                             ))}
                         </div>
                     </div>
-
-                // ... existing code above ...
                 </div>
             </div>
             <div className="flex justify-center pt-12 pb-8">
                 <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest bg-slate-50 px-4 py-2 rounded-full border border-slate-100/50">Build v2.5.1rc - Multi-Sync Active</p>
             </div>
         </div>
-    ); // This closes the return (
-} // This closes the export default function AdminDashboard() {
+    );
+}
