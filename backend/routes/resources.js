@@ -230,4 +230,55 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
+// POST /api/resources/bulk-delete
+router.post('/bulk-delete', async (req, res) => {
+    if (!supabase) return res.status(503).json({ error: 'Database service unavailable' });
+    try {
+        const { ids } = req.body;
+        if (!Array.isArray(ids) || ids.length === 0) {
+            return res.status(400).json({ error: 'IDs array is required' });
+        }
+
+        console.log(`--- BULK DELETE INITIATED for ${ids.length} items ---`);
+
+        // Get file URLs for all IDs to delete from storage
+        const { data: resources, error: fetchError } = await supabase
+            .from('resources')
+            .select('id, file_url')
+            .in('id', ids);
+
+        if (fetchError) {
+            throw fetchError;
+        }
+
+        const filePaths = resources.map(r => r.file_url);
+
+        // Delete files from storage
+        if (filePaths.length > 0) {
+            const { error: storageError } = await supabase.storage
+                .from('academic-files')
+                .remove(filePaths);
+
+            if (storageError) {
+                console.error('Bulk storage delete error:', storageError);
+            }
+        }
+
+        // Delete metadata from DB
+        const { error: dbError } = await supabase
+            .from('resources')
+            .delete()
+            .in('id', ids);
+
+        if (dbError) {
+            throw dbError;
+        }
+
+        res.json({ message: `Successfully deleted ${resources.length} resources` });
+    } catch (err) {
+        console.error('Bulk delete error:', err);
+        res.status(500).json({ error: 'Bulk deletion failed', details: err.message });
+    }
+});
+
 module.exports = router;

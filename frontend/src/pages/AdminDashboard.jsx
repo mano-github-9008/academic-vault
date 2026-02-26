@@ -42,11 +42,14 @@ export default function AdminDashboard() {
     const [deleteConfirm, setDeleteConfirm] = useState(null);
     const [videoDeleteConfirm, setVideoDeleteConfirm] = useState(null);
 
-    // File Upload State
-    const [title, setTitle] = useState('');
+    // Bulk File Upload State
     const [semester, setSemester] = useState('1');
     const [category, setCategory] = useState('General');
-    const [selectedFile, setSelectedFile] = useState(null);
+    const [selectedFiles, setSelectedFiles] = useState([]); // Multiple files
+    const [uploadProgress, setUploadProgress] = useState({}); // Track individual file status
+
+    // Bulk Delete State
+    const [selectedResourceIds, setSelectedResourceIds] = useState([]);
 
     // Video Registration State
     const [videoTitle, setVideoTitle] = useState('');
@@ -77,17 +80,13 @@ export default function AdminDashboard() {
 
     const onDrop = useCallback((acceptedFiles) => {
         if (acceptedFiles.length > 0) {
-            setSelectedFile(acceptedFiles[0]);
-            if (!title) {
-                const name = acceptedFiles[0].name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
-                setTitle(name.charAt(0).toUpperCase() + name.slice(1));
-            }
+            setSelectedFiles(prev => [...prev, ...acceptedFiles]);
         }
-    }, [title]);
+    }, []);
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
-        multiple: false,
+        multiple: true,
         accept: {
             'application/pdf': ['.pdf'],
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
@@ -103,48 +102,87 @@ export default function AdminDashboard() {
         }
     });
 
-    const handleFileUpload = async (e) => {
+    const handleBulkUpload = async (e) => {
         e.preventDefault();
-        if (!selectedFile) {
-            toast.error('No candidate file');
+        if (selectedFiles.length === 0) {
+            toast.error('No candidate files');
             return;
         }
 
         setUploading(true);
-        try {
-            const formData = new FormData();
-            formData.append('file', selectedFile);
-            formData.append('title', title);
-            formData.append('semester', semester);
-            formData.append('category', category);
+        let successCount = 0;
+        let failCount = 0;
 
-            const res = await fetch(`/api/resources/upload`, {
-                method: 'POST',
-                body: formData
-            });
+        for (const file of selectedFiles) {
+            const fileId = `${file.name}-${file.size}`;
+            setUploadProgress(prev => ({ ...prev, [fileId]: 'uploading' }));
 
-            if (!res.ok) {
-                let errorMsg = 'Cataloging failed';
-                try {
-                    const data = await res.json();
-                    errorMsg = data.details || data.error || errorMsg;
-                } catch (e) {
-                    errorMsg = `Server error: ${res.status} ${res.statusText}`;
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('title', file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' '));
+                formData.append('semester', semester);
+                formData.append('category', category);
+
+                const res = await fetch(`/api/resources/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!res.ok) {
+                    let errorMsg = 'Failed';
+                    try {
+                        const data = await res.json();
+                        errorMsg = data.details || data.error || errorMsg;
+                    } catch (e) { }
+                    throw new Error(errorMsg);
                 }
-                throw new Error(errorMsg);
-            }
 
-            toast.success('Resource integrated');
-            setTitle('');
-            setSemester('1');
-            setCategory('General');
-            setSelectedFile(null);
-            fetchData();
-        } catch (err) {
-            toast.error(err.message);
-        } finally {
-            setUploading(false);
+                setUploadProgress(prev => ({ ...prev, [fileId]: 'done' }));
+                successCount++;
+            } catch (err) {
+                console.error(`Upload failed for ${file.name}:`, err);
+                setUploadProgress(prev => ({ ...prev, [fileId]: 'error' }));
+                failCount++;
+            }
         }
+
+        setUploading(false);
+        if (successCount > 0) toast.success(`${successCount} resources integrated`);
+        if (failCount > 0) toast.error(`${failCount} uploads failed`);
+
+        setSelectedFiles([]);
+        setUploadProgress({});
+        fetchData();
+    };
+
+    const handleBulkDelete = async () => {
+        if (selectedResourceIds.length === 0) return;
+
+        setDeleteConfirm(null);
+        toast.promise(
+            (async () => {
+                const res = await fetch(`/api/resources/bulk-delete`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ids: selectedResourceIds })
+                });
+                if (!res.ok) throw new Error('Bulk deletion failed');
+                setSelectedResourceIds([]);
+                fetchData();
+            })(),
+            {
+                loading: 'Purging selection...',
+                success: 'Archive updated',
+                error: 'Terminal error during purge'
+            }
+        );
+    };
+
+    const toggleSelection = (id) => {
+        setSelectedResourceIds(prev =>
+            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+        );
     };
 
     const handleVideoRegister = async (e) => {
@@ -207,7 +245,7 @@ export default function AdminDashboard() {
                 <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform duration-700" />
                 <div className="relative z-10">
                     <h1 className="text-5xl font-black text-white tracking-tighter uppercase leading-none">Admin <span className="text-indigo-400">Terminal</span></h1>
-                    <p className="text-slate-400 mt-4 font-bold tracking-[0.3em] text-[10px] uppercase">Academic Repository Controller v2.0</p>
+                    <p className="text-slate-400 mt-4 font-bold tracking-[0.3em] text-[10px] uppercase">Academic Repository Controller v2.5</p>
                 </div>
             </div>
 
@@ -222,50 +260,54 @@ export default function AdminDashboard() {
                             <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
                                 <HiOutlineCloudUpload className="w-6 h-6" />
                             </div>
-                            <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">File Ingester</h2>
+                            <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">Bulk Ingester</h2>
                         </div>
 
-                        <form onSubmit={handleFileUpload} className="space-y-6">
+                        <form onSubmit={handleBulkUpload} className="space-y-6">
                             <div
                                 {...getRootProps()}
                                 className={`border-2 border-dashed rounded-3xl p-10 text-center cursor-pointer transition-all duration-500 ${isDragActive
                                     ? 'border-indigo-600 bg-indigo-50 animate-pulse'
-                                    : selectedFile
+                                    : selectedFiles.length > 0
                                         ? 'border-emerald-500 bg-emerald-50'
                                         : 'border-slate-100 bg-slate-50 hover:border-indigo-200 hover:bg-white'
                                     }`}
                             >
                                 <input {...getInputProps()} />
-                                {selectedFile ? (
-                                    <div className="flex flex-col items-center">
-                                        <div className="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center mb-4">
+                                {selectedFiles.length > 0 ? (
+                                    <div className="space-y-3">
+                                        <div className="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center mx-auto mb-2">
                                             <HiOutlineCheck className="w-6 h-6 text-emerald-600" />
                                         </div>
-                                        <p className="text-xs font-black text-slate-800 truncate max-w-full tracking-tight">{selectedFile.name}</p>
-                                        <button type="button" onClick={(e) => { e.stopPropagation(); setSelectedFile(null); }} className="mt-4 text-[9px] font-black text-red-500 uppercase tracking-widest hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors">Abort</button>
+                                        <p className="text-xs font-black text-slate-800 tracking-tight">{selectedFiles.length} files staged</p>
+                                        <div className="max-h-32 overflow-y-auto space-y-1 px-2">
+                                            {selectedFiles.map(f => (
+                                                <div key={`${f.name}-${f.size}`} className="flex items-center justify-between text-[10px] bg-white p-2 rounded-lg border border-slate-50">
+                                                    <span className="truncate max-w-[150px] font-bold text-slate-600">{f.name}</span>
+                                                    {uploadProgress[`${f.name}-${f.size}`] === 'uploading' && <span className="text-indigo-500 animate-pulse font-black uppercase">Syncing...</span>}
+                                                    {uploadProgress[`${f.name}-${f.size}`] === 'done' && <HiOutlineCheck className="text-emerald-500" />}
+                                                    {uploadProgress[`${f.name}-${f.size}`] === 'error' && <HiOutlineX className="text-red-500" />}
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <button type="button" onClick={(e) => { e.stopPropagation(); setSelectedFiles([]); }} className="text-[9px] font-black text-red-500 uppercase tracking-widest hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors">Clear All</button>
                                     </div>
                                 ) : (
                                     <>
                                         <HiOutlineCloudUpload className="w-10 h-10 text-slate-300 mx-auto mb-4" />
-                                        <p className="text-slate-500 font-bold text-xs uppercase tracking-widest">Deploy Resource</p>
-                                        <p className="text-[9px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-3">PDF, DOC, XLS, ZIP, IMG</p>
+                                        <p className="text-slate-500 font-bold text-xs uppercase tracking-widest">Deploy Resources</p>
+                                        <p className="text-[9px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-3">Select multiple files</p>
                                     </>
                                 )}
                             </div>
 
-                            <div className="space-y-5">
-                                <div>
-                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block pl-1">Alias</label>
-                                    <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="input-field" placeholder="Subject_Title_Format" required />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <select value={semester} onChange={(e) => setSemester(e.target.value)} className="input-field">{semesters.map(s => <option key={s} value={s}>Sem {s}</option>)}</select>
-                                    <select value={category} onChange={(e) => setCategory(e.target.value)} className="input-field">{categories.map(c => <option key={c} value={c}>{c}</option>)}</select>
-                                </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <select value={semester} onChange={(e) => setSemester(e.target.value)} className="input-field">{semesters.map(s => <option key={s} value={s}>Sem {s}</option>)}</select>
+                                <select value={category} onChange={(e) => setCategory(e.target.value)} className="input-field">{categories.map(c => <option key={c} value={c}>{c}</option>)}</select>
                             </div>
 
-                            <button type="submit" disabled={uploading || !selectedFile} className="w-full btn-primary py-4 uppercase tracking-[0.2em] font-black text-[10px]">
-                                {uploading ? 'Processing Architecture...' : 'Commit to Repository'}
+                            <button type="submit" disabled={uploading || selectedFiles.length === 0} className="w-full btn-primary py-4 uppercase tracking-[0.2em] font-black text-[10px]">
+                                {uploading ? 'Executing Bulk Integration...' : 'Commit Selection to Repository'}
                             </button>
                         </form>
                     </div>
@@ -316,14 +358,34 @@ export default function AdminDashboard() {
 
                     {/* Catalog Monitor */}
                     <div className="bento-card overflow-hidden">
-                        <div className="p-8 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
-                            <h2 className="text-sm font-black text-slate-900 uppercase tracking-[0.2em]">Repository Catalog</h2>
+                        <div className="p-8 border-b border-slate-50 flex items-center justify-between bg-white sticky top-0 z-20">
+                            <div className="flex items-center gap-4">
+                                <h2 className="text-sm font-black text-slate-900 uppercase tracking-[0.2em]">Repository Catalog</h2>
+                                {selectedResourceIds.length > 0 && (
+                                    <button
+                                        onClick={() => handleBulkDelete()}
+                                        className="flex items-center gap-2 px-4 py-1.5 bg-red-50 text-red-600 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-red-100 transition-all"
+                                    >
+                                        <HiOutlineTrash className="w-3.5 h-3.5" />
+                                        Purge {selectedResourceIds.length} Selected
+                                    </button>
+                                )}
+                            </div>
                             <span className="text-[9px] font-black text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">{resources.length} UNITS</span>
                         </div>
-                        <div className="max-h-[400px] overflow-y-auto divide-y divide-slate-50">
+                        <div className="max-h-[600px] overflow-y-auto divide-y divide-slate-50">
                             {resources.map(res => (
-                                <div key={res.id} className="p-6 hover:bg-slate-50 transition-colors flex items-center justify-between group">
+                                <div
+                                    key={res.id}
+                                    className={`p-6 hover:bg-slate-50 transition-colors flex items-center justify-between group ${selectedResourceIds.includes(res.id) ? 'bg-indigo-50/30' : ''}`}
+                                >
                                     <div className="flex items-center gap-4">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedResourceIds.includes(res.id)}
+                                            onChange={() => toggleSelection(res.id)}
+                                            className="w-4 h-4 rounded-md border-slate-200 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                                        />
                                         <div className="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center text-slate-300">
                                             <HiOutlineDocumentText className="w-5 h-5" />
                                         </div>
@@ -371,5 +433,7 @@ export default function AdminDashboard() {
                 </div>
             </div>
         </div>
+    );
+}
     );
 }
