@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { HiOutlineVideoCamera, HiOutlineSearch, HiOutlineFolder, HiOutlinePlay, HiOutlineX, HiOutlineFilter } from 'react-icons/hi';
+import { HiOutlineVideoCamera, HiOutlineSearch, HiOutlineFolder, HiOutlinePlay, HiOutlineFilter } from 'react-icons/hi';
 import toast from 'react-hot-toast';
 
 const API_URL = '';
@@ -82,35 +82,38 @@ export default function VideoLibrary() {
     };
 
     return (
-        <div className="page-enter pb-16">
-            {/* ─── TOP BAR ─── */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-                <div>
-                    <h1 className="text-3xl font-black text-slate-900 tracking-tight">
-                        Video <span className="text-indigo-600">Library</span>
-                    </h1>
-                    <p className="text-xs text-slate-400 font-bold mt-1 uppercase tracking-widest">
-                        {filtered.length} streams available
-                    </p>
+        <div className="page-enter pb-16 space-y-6">
+            {/* ─── HEADER BENTO ─── */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="bento-card p-8 lg:col-span-2 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-500/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
+                    <div className="relative z-10">
+                        <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+                            Video <span className="text-indigo-600">Archive</span>
+                        </h1>
+                        <p className="text-slate-400 mt-1 font-bold text-xs uppercase tracking-widest">
+                            {filtered.length} streams indexed
+                        </p>
+                    </div>
                 </div>
-                <div className="flex items-center gap-3 w-full sm:w-auto">
-                    <div className="relative flex-1 sm:flex-initial sm:w-64">
-                        <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <div className="bento-card p-6 flex flex-col gap-3">
+                    <div className="relative">
+                        <HiOutlineSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
                         <input
                             type="text"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            placeholder="Search..."
-                            className="w-full bg-slate-100 border-0 rounded-xl py-2.5 pl-10 pr-4 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all font-medium"
+                            placeholder="Search library..."
+                            className="input-field pl-10 text-sm"
                         />
                     </div>
                     <select
-                        className="bg-slate-100 border-0 rounded-xl py-2.5 px-4 text-sm text-slate-700 font-medium appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all"
+                        className="input-field text-sm"
                         onChange={(e) => setFilterSemester(e.target.value || null)}
                     >
-                        <option value="">All Sem</option>
+                        <option value="">All Semesters</option>
                         {semesters.map(s => (
-                            <option key={s} value={s}>Sem {s}</option>
+                            <option key={s} value={s}>Semester {s}</option>
                         ))}
                     </select>
                 </div>
@@ -119,27 +122,26 @@ export default function VideoLibrary() {
             {/* ─── LOADING ─── */}
             {loading ? (
                 <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6">
-                    <div className="aspect-video bg-slate-200 rounded-2xl animate-pulse" />
+                    <div className="aspect-video bg-slate-100 rounded-2xl animate-pulse" />
                     <div className="space-y-3">
-                        {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-slate-200 rounded-xl animate-pulse" />)}
+                        {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-slate-100 rounded-xl animate-pulse" />)}
                     </div>
                 </div>
             ) : filtered.length === 0 ? (
-                <div className="rounded-2xl bg-[#0f0f0f] py-32 text-center">
-                    <HiOutlineVideoCamera className="w-16 h-16 text-slate-600 mx-auto mb-6" />
-                    <h3 className="text-2xl font-black text-white">Archive is dormant</h3>
+                <div className="bento-card py-32 text-center">
+                    <HiOutlineVideoCamera className="w-16 h-16 text-slate-200 mx-auto mb-6" />
+                    <h3 className="text-2xl font-black text-slate-900">Archive is dormant</h3>
                     <p className="text-slate-500 mt-2 font-medium">No videos found matching your current parameters.</p>
                 </div>
             ) : (
                 /* ─── MAIN LAYOUT ─── */
                 <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 items-start">
 
-                    {/* ── LEFT: MAIN PLAYER ── */}
+                    {/* ── LEFT: PLAYER ── */}
                     <div className="space-y-4">
-                        {/* Player Container */}
-                        <div className="relative rounded-2xl overflow-hidden bg-[#0f0f0f] shadow-2xl shadow-black/20">
+                        <div className="bento-card p-0 overflow-hidden">
                             {activeVideo ? (
-                                <div className={`aspect-video transition-opacity duration-300 ${videoTransition ? 'opacity-0' : 'opacity-100'}`}>
+                                <div className={`aspect-video bg-slate-900 transition-opacity duration-300 ${videoTransition ? 'opacity-0' : 'opacity-100'}`}>
                                     <iframe
                                         key={activeVideo.id}
                                         src={getEmbedUrl(activeVideo.url)}
@@ -150,26 +152,26 @@ export default function VideoLibrary() {
                                     />
                                 </div>
                             ) : (
-                                <div className="aspect-video flex items-center justify-center">
+                                <div className="aspect-video bg-slate-50 flex items-center justify-center">
                                     <div className="text-center">
-                                        <HiOutlinePlay className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-                                        <p className="text-slate-500 font-bold text-sm">Select a video to start</p>
+                                        <HiOutlinePlay className="w-16 h-16 text-slate-200 mx-auto mb-4" />
+                                        <p className="text-slate-400 font-bold text-sm">Select a video to begin</p>
                                     </div>
                                 </div>
                             )}
                         </div>
 
-                        {/* Video Info */}
+                        {/* Video Info Card */}
                         {activeVideo && (
-                            <div className="px-1 space-y-3 animate-video-fade-in">
-                                <h2 className="text-xl font-black text-slate-900 tracking-tight leading-snug">
+                            <div className="bento-card p-6 animate-video-fade-in">
+                                <h2 className="text-lg font-black text-slate-900 tracking-tight leading-snug">
                                     {activeVideo.title}
                                 </h2>
-                                <div className="flex items-center gap-3">
-                                    <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full uppercase tracking-widest">
+                                <div className="flex items-center gap-3 mt-3">
+                                    <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full uppercase tracking-widest border border-indigo-100">
                                         Semester {activeVideo.semester}
                                     </span>
-                                    <span className="text-[10px] font-black text-slate-500 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-widest">
+                                    <span className="text-[10px] font-black text-slate-500 bg-slate-50 px-3 py-1 rounded-full uppercase tracking-widest border border-slate-100">
                                         {activeVideo.subject}
                                     </span>
                                 </div>
@@ -178,22 +180,22 @@ export default function VideoLibrary() {
                     </div>
 
                     {/* ── RIGHT: UP NEXT QUEUE ── */}
-                    <div className="rounded-2xl bg-[#0f0f0f] overflow-hidden border border-white/5 shadow-xl shadow-black/10">
+                    <div className="bento-card overflow-hidden">
                         {/* Queue Header */}
-                        <div className="px-5 py-4 border-b border-white/5">
+                        <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
                             <div className="flex items-center justify-between">
-                                <h3 className="text-sm font-black text-white uppercase tracking-widest">Up Next</h3>
-                                <span className="text-[10px] font-bold text-slate-500 bg-white/5 px-2.5 py-1 rounded-full">{filtered.length}</span>
+                                <h3 className="text-xs font-black text-slate-900 uppercase tracking-[0.2em]">Up Next</h3>
+                                <span className="text-[9px] font-black text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">{filtered.length} STREAMS</span>
                             </div>
                         </div>
 
                         {/* Queue List */}
-                        <div className="max-h-[calc(100vh-280px)] overflow-y-auto video-queue-scrollbar">
+                        <div className="max-h-[calc(100vh-280px)] overflow-y-auto divide-y divide-slate-50">
                             {sortedSemesters.map(semNum => (
                                 <div key={semNum}>
                                     {/* Semester Divider */}
-                                    <div className="px-5 py-2.5 bg-white/[0.02] border-b border-white/5 sticky top-0 z-10 backdrop-blur-sm">
-                                        <span className="text-[9px] font-black text-indigo-400 uppercase tracking-[0.3em]">
+                                    <div className="px-6 py-2.5 bg-slate-50/80 border-b border-slate-100 sticky top-0 z-10">
+                                        <span className="text-[9px] font-black text-indigo-600 uppercase tracking-[0.3em]">
                                             Semester {semNum}
                                         </span>
                                     </div>
@@ -201,9 +203,9 @@ export default function VideoLibrary() {
                                     {Object.keys(groupedBySemester[semNum]).sort().map(subject => (
                                         <div key={subject}>
                                             {/* Subject Label */}
-                                            <div className="px-5 py-2 flex items-center gap-2">
-                                                <HiOutlineFolder className="w-3 h-3 text-slate-600" />
-                                                <span className="text-[9px] font-bold text-slate-600 uppercase tracking-widest">{subject}</span>
+                                            <div className="px-6 py-2 flex items-center gap-2 bg-white">
+                                                <HiOutlineFolder className="w-3 h-3 text-slate-300" />
+                                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{subject}</span>
                                             </div>
 
                                             {/* Video Cards */}
@@ -215,14 +217,14 @@ export default function VideoLibrary() {
                                                     <div
                                                         key={video.id}
                                                         onClick={() => handleVideoSwitch(video)}
-                                                        className={`flex gap-3 px-5 py-3 cursor-pointer transition-all duration-200 group relative
+                                                        className={`flex gap-3 px-6 py-3 cursor-pointer transition-all duration-200 group relative
                                                             ${isActive
-                                                                ? 'bg-indigo-600/10 border-l-[3px] border-l-indigo-500'
-                                                                : 'hover:bg-white/[0.04] border-l-[3px] border-l-transparent'
+                                                                ? 'bg-indigo-50/50 border-l-[3px] border-l-indigo-500'
+                                                                : 'hover:bg-slate-50 border-l-[3px] border-l-transparent'
                                                             }`}
                                                     >
                                                         {/* Thumbnail */}
-                                                        <div className="relative w-[168px] min-w-[168px] aspect-video rounded-xl overflow-hidden bg-slate-800 flex-shrink-0">
+                                                        <div className="relative w-[140px] min-w-[140px] aspect-video rounded-xl overflow-hidden bg-slate-100 flex-shrink-0">
                                                             {thumbnail ? (
                                                                 <img
                                                                     src={thumbnail}
@@ -231,30 +233,30 @@ export default function VideoLibrary() {
                                                                     loading="lazy"
                                                                 />
                                                             ) : (
-                                                                <div className="w-full h-full flex items-center justify-center">
-                                                                    <HiOutlineVideoCamera className="w-6 h-6 text-slate-600" />
+                                                                <div className="w-full h-full flex items-center justify-center bg-slate-100">
+                                                                    <HiOutlineVideoCamera className="w-5 h-5 text-slate-300" />
                                                                 </div>
                                                             )}
                                                             {/* Play overlay */}
-                                                            <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${isActive ? 'opacity-100 bg-indigo-600/30' : 'opacity-0 group-hover:opacity-100 bg-black/30'}`}>
-                                                                <div className="w-8 h-8 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
-                                                                    <HiOutlinePlay className="w-4 h-4 text-slate-900 translate-x-[1px]" />
+                                                            <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 rounded-xl ${isActive ? 'opacity-100 bg-indigo-600/20' : 'opacity-0 group-hover:opacity-100 bg-black/20'}`}>
+                                                                <div className="w-8 h-8 rounded-full bg-white shadow-lg flex items-center justify-center">
+                                                                    <HiOutlinePlay className="w-4 h-4 text-indigo-600 translate-x-[1px]" />
                                                                 </div>
                                                             </div>
                                                             {isActive && (
                                                                 <div className="absolute bottom-1.5 left-1.5">
-                                                                    <span className="text-[8px] font-black text-white bg-indigo-600 px-1.5 py-0.5 rounded uppercase tracking-wider">Now Playing</span>
+                                                                    <span className="text-[7px] font-black text-white bg-indigo-600 px-1.5 py-0.5 rounded uppercase tracking-wider shadow-md">Playing</span>
                                                                 </div>
                                                             )}
                                                         </div>
 
                                                         {/* Info */}
                                                         <div className="flex flex-col justify-center min-w-0 py-0.5">
-                                                            <h4 className={`text-[13px] font-bold leading-snug line-clamp-2 transition-colors duration-200 ${isActive ? 'text-indigo-400' : 'text-slate-300 group-hover:text-white'}`}>
+                                                            <h4 className={`text-[12px] font-bold leading-snug line-clamp-2 transition-colors duration-200 ${isActive ? 'text-indigo-600' : 'text-slate-800 group-hover:text-indigo-600'}`}>
                                                                 {video.title}
                                                             </h4>
-                                                            <span className="text-[10px] text-slate-600 font-medium mt-1.5 truncate">
-                                                                {subject}
+                                                            <span className="text-[10px] text-slate-400 font-medium mt-1.5 truncate">
+                                                                {subject} · S{video.semester}
                                                             </span>
                                                         </div>
                                                     </div>
