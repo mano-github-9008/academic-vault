@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { HiOutlineVideoCamera, HiOutlineSearch, HiOutlineFolder, HiOutlinePlay, HiOutlineX } from 'react-icons/hi';
+import { HiOutlineVideoCamera, HiOutlineSearch, HiOutlineFolder, HiOutlinePlay, HiOutlineX, HiOutlineFilter } from 'react-icons/hi';
 import toast from 'react-hot-toast';
 
 const API_URL = '';
@@ -12,6 +12,7 @@ export default function VideoLibrary() {
     const [search, setSearch] = useState('');
     const [activeVideo, setActiveVideo] = useState(null);
     const [filterSemester, setFilterSemester] = useState(null);
+    const [videoTransition, setVideoTransition] = useState(false);
 
     useEffect(() => {
         fetchVideos();
@@ -24,13 +25,16 @@ export default function VideoLibrary() {
             const data = await res.json();
             if (res.ok && Array.isArray(data)) {
                 setVideos(data);
+                if (data.length > 0 && !activeVideo) {
+                    setActiveVideo(data[0]);
+                }
             } else {
                 throw new Error(data.error || 'Failed to fetch library');
             }
         } catch (err) {
             toast.error('Failed to load video catalog');
             console.error('VideoLibrary Fetch Error:', err);
-            setVideos([]); // Fallback to empty array to prevent crash
+            setVideos([]);
         } finally {
             setLoading(false);
         }
@@ -52,148 +56,218 @@ export default function VideoLibrary() {
 
     const sortedSemesters = Object.keys(groupedBySemester).sort((a, b) => a - b);
 
-    // Simple youtube/video-id extractor
     const getEmbedUrl = (url) => {
         if (url.includes('youtube.com') || url.includes('youtu.be')) {
             const id = url.includes('v=') ? url.split('v=')[1].split('&')[0] : url.split('/').pop();
-            return `https://www.youtube.com/embed/${id}`;
+            return `https://www.youtube.com/embed/${id}?autoplay=1&rel=0`;
         }
         return url;
     };
 
+    const getYouTubeThumbnail = (url) => {
+        if (url.includes('youtube.com') || url.includes('youtu.be')) {
+            const id = url.includes('v=') ? url.split('v=')[1].split('&')[0] : url.split('/').pop();
+            return `https://img.youtube.com/vi/${id}/mqdefault.jpg`;
+        }
+        return null;
+    };
+
+    const handleVideoSwitch = (video) => {
+        if (activeVideo?.id === video.id) return;
+        setVideoTransition(true);
+        setTimeout(() => {
+            setActiveVideo(video);
+            setVideoTransition(false);
+        }, 200);
+    };
+
     return (
-        <div className="page-enter space-y-8 pb-32">
-            {/* Header / Filter Center */}
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-6">
-                <div className="lg:col-span-2 bento-card p-10 flex flex-col justify-center relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-40 h-40 bg-indigo-600/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">
-                        Video <span className="text-indigo-600">Archive</span>
+        <div className="page-enter pb-16">
+            {/* ─── TOP BAR ─── */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                <div>
+                    <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+                        Video <span className="text-indigo-600">Library</span>
                     </h1>
-                    <p className="text-slate-500 mt-2 font-medium">
-                        Semester-wise curator for digital lectures and seminars.
+                    <p className="text-xs text-slate-400 font-bold mt-1 uppercase tracking-widest">
+                        {filtered.length} streams available
                     </p>
                 </div>
-
-                <div className="lg:col-span-2 bento-card p-8 bg-indigo-600 flex flex-col gap-4">
-                    <div className="relative group">
-                        <HiOutlineSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-300 group-focus-within:text-white transition-colors" />
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                    <div className="relative flex-1 sm:flex-initial sm:w-64">
+                        <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                         <input
                             type="text"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            placeholder="Search library..."
-                            className="w-full bg-white/10 border border-white/20 rounded-xl py-3 pl-12 pr-4 text-white placeholder-indigo-200 focus:outline-none focus:ring-4 focus:ring-white/10 transition-all font-bold"
+                            placeholder="Search..."
+                            className="w-full bg-slate-100 border-0 rounded-xl py-2.5 pl-10 pr-4 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all font-medium"
                         />
                     </div>
-                    <div className="flex gap-2">
-                        <select
-                            className="flex-1 bg-white/10 border border-white/20 rounded-xl py-3 px-4 text-white font-bold appearance-none hover:bg-white/20 transition-all cursor-pointer focus:outline-none"
-                            onChange={(e) => setFilterSemester(e.target.value || null)}
-                        >
-                            <option value="" className="text-slate-900">All Semesters</option>
-                            {semesters.map(s => (
-                                <option key={s} value={s} className="text-slate-900">Semester {s}</option>
-                            ))}
-                        </select>
-                    </div>
+                    <select
+                        className="bg-slate-100 border-0 rounded-xl py-2.5 px-4 text-sm text-slate-700 font-medium appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all"
+                        onChange={(e) => setFilterSemester(e.target.value || null)}
+                    >
+                        <option value="">All Sem</option>
+                        {semesters.map(s => (
+                            <option key={s} value={s}>Sem {s}</option>
+                        ))}
+                    </select>
                 </div>
             </div>
 
-            {/* Video Player Modal/Overlay if active */}
-            {activeVideo && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 lg:p-12 animate-fade-in">
-                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setActiveVideo(null)} />
-                    <div className="relative w-full max-w-5xl aspect-video bg-black rounded-3xl overflow-hidden shadow-2xl border border-white/10 animate-scale-up">
-                        <iframe
-                            src={getEmbedUrl(activeVideo.url)}
-                            className="w-full h-full"
-                            frameBorder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                        />
-                        <button
-                            onClick={() => setActiveVideo(null)}
-                            className="absolute top-6 right-6 p-4 bg-white/10 hover:bg-white/20 text-white rounded-2xl backdrop-blur-md transition-all border border-white/10"
-                        >
-                            <HiOutlineX className="w-6 h-6" />
-                        </button>
+            {/* ─── LOADING ─── */}
+            {loading ? (
+                <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6">
+                    <div className="aspect-video bg-slate-200 rounded-2xl animate-pulse" />
+                    <div className="space-y-3">
+                        {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-slate-200 rounded-xl animate-pulse" />)}
                     </div>
                 </div>
-            )}
-
-            {/* Content Display */}
-            {loading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {[1, 2, 3].map(i => <div key={i} className="h-48 bg-slate-100 rounded-3xl animate-pulse" />)}
-                </div>
             ) : filtered.length === 0 ? (
-                <div className="bento-card py-32 text-center">
-                    <HiOutlineVideoCamera className="w-16 h-16 text-slate-200 mx-auto mb-6" />
-                    <h3 className="text-2xl font-black text-slate-900">Archive is dormant</h3>
+                <div className="rounded-2xl bg-[#0f0f0f] py-32 text-center">
+                    <HiOutlineVideoCamera className="w-16 h-16 text-slate-600 mx-auto mb-6" />
+                    <h3 className="text-2xl font-black text-white">Archive is dormant</h3>
                     <p className="text-slate-500 mt-2 font-medium">No videos found matching your current parameters.</p>
                 </div>
             ) : (
-                <div className="space-y-16">
-                    {sortedSemesters.map(semNum => (
-                        <div key={semNum} className="space-y-10">
-                            <div className="flex items-center gap-6">
-                                <span className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-black text-lg shadow-xl shadow-indigo-100">
-                                    {semNum}
-                                </span>
-                                <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight">
-                                    Semester <span className="text-indigo-600">{semNum}</span>
-                                </h2>
-                                <div className="h-[2px] flex-1 bg-slate-100 rounded-full" />
-                            </div>
+                /* ─── MAIN LAYOUT ─── */
+                <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 items-start">
 
-                            {Object.keys(groupedBySemester[semNum]).sort().map(subject => (
-                                <div key={subject} className="space-y-6">
-                                    <div className="flex items-center gap-4">
-                                        <HiOutlineFolder className="w-5 h-5 text-slate-300" />
-                                        <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.4em]">{subject}</h3>
+                    {/* ── LEFT: MAIN PLAYER ── */}
+                    <div className="space-y-4">
+                        {/* Player Container */}
+                        <div className="relative rounded-2xl overflow-hidden bg-[#0f0f0f] shadow-2xl shadow-black/20">
+                            {activeVideo ? (
+                                <div className={`aspect-video transition-opacity duration-300 ${videoTransition ? 'opacity-0' : 'opacity-100'}`}>
+                                    <iframe
+                                        key={activeVideo.id}
+                                        src={getEmbedUrl(activeVideo.url)}
+                                        className="w-full h-full"
+                                        frameBorder="0"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowFullScreen
+                                    />
+                                </div>
+                            ) : (
+                                <div className="aspect-video flex items-center justify-center">
+                                    <div className="text-center">
+                                        <HiOutlinePlay className="w-16 h-16 text-slate-600 mx-auto mb-4" />
+                                        <p className="text-slate-500 font-bold text-sm">Select a video to start</p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Video Info */}
+                        {activeVideo && (
+                            <div className="px-1 space-y-3 animate-video-fade-in">
+                                <h2 className="text-xl font-black text-slate-900 tracking-tight leading-snug">
+                                    {activeVideo.title}
+                                </h2>
+                                <div className="flex items-center gap-3">
+                                    <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full uppercase tracking-widest">
+                                        Semester {activeVideo.semester}
+                                    </span>
+                                    <span className="text-[10px] font-black text-slate-500 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-widest">
+                                        {activeVideo.subject}
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* ── RIGHT: UP NEXT QUEUE ── */}
+                    <div className="rounded-2xl bg-[#0f0f0f] overflow-hidden border border-white/5 shadow-xl shadow-black/10">
+                        {/* Queue Header */}
+                        <div className="px-5 py-4 border-b border-white/5">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-sm font-black text-white uppercase tracking-widest">Up Next</h3>
+                                <span className="text-[10px] font-bold text-slate-500 bg-white/5 px-2.5 py-1 rounded-full">{filtered.length}</span>
+                            </div>
+                        </div>
+
+                        {/* Queue List */}
+                        <div className="max-h-[calc(100vh-280px)] overflow-y-auto video-queue-scrollbar">
+                            {sortedSemesters.map(semNum => (
+                                <div key={semNum}>
+                                    {/* Semester Divider */}
+                                    <div className="px-5 py-2.5 bg-white/[0.02] border-b border-white/5 sticky top-0 z-10 backdrop-blur-sm">
+                                        <span className="text-[9px] font-black text-indigo-400 uppercase tracking-[0.3em]">
+                                            Semester {semNum}
+                                        </span>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                        {groupedBySemester[semNum][subject].map((video, idx) => (
-                                            <div
-                                                key={video.id}
-                                                className="group bento-card-hover p-0 overflow-hidden flex flex-col h-full cursor-pointer animate-slide-up"
-                                                style={{ animationDelay: `${idx * 50}ms` }}
-                                                onClick={() => setActiveVideo(video)}
-                                            >
-                                                <div className="aspect-video relative bg-slate-900 overflow-hidden">
-                                                    <div className="absolute inset-0 flex items-center justify-center bg-indigo-600/20 group-hover:bg-indigo-600/40 transition-colors z-10">
-                                                        <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-2xl scale-0 group-hover:scale-100 transition-transform duration-500">
-                                                            <HiOutlinePlay className="w-6 h-6 text-indigo-600 translate-x-0.5" />
+                                    {Object.keys(groupedBySemester[semNum]).sort().map(subject => (
+                                        <div key={subject}>
+                                            {/* Subject Label */}
+                                            <div className="px-5 py-2 flex items-center gap-2">
+                                                <HiOutlineFolder className="w-3 h-3 text-slate-600" />
+                                                <span className="text-[9px] font-bold text-slate-600 uppercase tracking-widest">{subject}</span>
+                                            </div>
+
+                                            {/* Video Cards */}
+                                            {groupedBySemester[semNum][subject].map((video) => {
+                                                const isActive = activeVideo?.id === video.id;
+                                                const thumbnail = getYouTubeThumbnail(video.url);
+
+                                                return (
+                                                    <div
+                                                        key={video.id}
+                                                        onClick={() => handleVideoSwitch(video)}
+                                                        className={`flex gap-3 px-5 py-3 cursor-pointer transition-all duration-200 group relative
+                                                            ${isActive
+                                                                ? 'bg-indigo-600/10 border-l-[3px] border-l-indigo-500'
+                                                                : 'hover:bg-white/[0.04] border-l-[3px] border-l-transparent'
+                                                            }`}
+                                                    >
+                                                        {/* Thumbnail */}
+                                                        <div className="relative w-[168px] min-w-[168px] aspect-video rounded-xl overflow-hidden bg-slate-800 flex-shrink-0">
+                                                            {thumbnail ? (
+                                                                <img
+                                                                    src={thumbnail}
+                                                                    alt={video.title}
+                                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                                    loading="lazy"
+                                                                />
+                                                            ) : (
+                                                                <div className="w-full h-full flex items-center justify-center">
+                                                                    <HiOutlineVideoCamera className="w-6 h-6 text-slate-600" />
+                                                                </div>
+                                                            )}
+                                                            {/* Play overlay */}
+                                                            <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${isActive ? 'opacity-100 bg-indigo-600/30' : 'opacity-0 group-hover:opacity-100 bg-black/30'}`}>
+                                                                <div className="w-8 h-8 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
+                                                                    <HiOutlinePlay className="w-4 h-4 text-slate-900 translate-x-[1px]" />
+                                                                </div>
+                                                            </div>
+                                                            {isActive && (
+                                                                <div className="absolute bottom-1.5 left-1.5">
+                                                                    <span className="text-[8px] font-black text-white bg-indigo-600 px-1.5 py-0.5 rounded uppercase tracking-wider">Now Playing</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Info */}
+                                                        <div className="flex flex-col justify-center min-w-0 py-0.5">
+                                                            <h4 className={`text-[13px] font-bold leading-snug line-clamp-2 transition-colors duration-200 ${isActive ? 'text-indigo-400' : 'text-slate-300 group-hover:text-white'}`}>
+                                                                {video.title}
+                                                            </h4>
+                                                            <span className="text-[10px] text-slate-600 font-medium mt-1.5 truncate">
+                                                                {subject}
+                                                            </span>
                                                         </div>
                                                     </div>
-                                                    {/* Video Thumbnail Placeholder (if you don't have real thumbnails) */}
-                                                    <div className="absolute inset-0 flex flex-col items-center justify-center opacity-40">
-                                                        <HiOutlineVideoCamera className="w-8 h-8 text-white mb-2" />
-                                                        <span className="text-[8px] font-black text-white uppercase tracking-widest leading-none">Stream Logic</span>
-                                                    </div>
-                                                </div>
-
-                                                <div className="p-6">
-                                                    <h4 className="text-sm font-bold text-slate-900 tracking-tight leading-snug group-hover:text-indigo-600 transition-colors">
-                                                        {video.title}
-                                                    </h4>
-                                                    <div className="mt-4 pt-4 border-t border-slate-50 flex items-center justify-between">
-                                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{subject}</span>
-                                                        <span className="text-[9px] font-black text-indigo-500 uppercase tracking-widest">S{semNum} Digital</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    ))}
                                 </div>
                             ))}
                         </div>
-                    ))}
+                    </div>
                 </div>
             )}
         </div>
     );
 }
-
