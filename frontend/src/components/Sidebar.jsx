@@ -6,20 +6,20 @@ import {
     HiOutlineShieldCheck,
     HiOutlineX,
     HiOutlineLogout,
-    HiOutlineVideoCamera
+    HiOutlineVideoCamera,
+    HiOutlineBookOpen,
+    HiOutlineCube
 } from 'react-icons/hi';
 
-const semesters = [1, 2, 3, 4, 5, 6, 7, 8];
+const modules = [1, 2, 3, 4, 5, 6];
 
-const semesterColors = [
+const moduleColors = [
     'from-blue-500 to-cyan-400',
     'from-violet-500 to-purple-400',
     'from-emerald-500 to-teal-400',
     'from-orange-500 to-amber-400',
     'from-rose-500 to-pink-400',
-    'from-indigo-500 to-blue-400',
-    'from-fuchsia-500 to-pink-400',
-    'from-teal-500 to-emerald-400'
+    'from-indigo-500 to-blue-400'
 ];
 
 export default function Sidebar({ isOpen, onClose }) {
@@ -59,11 +59,11 @@ export default function Sidebar({ isOpen, onClose }) {
                     <div className="flex items-center justify-between p-6 border-b border-slate-100">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-200">
-                                <HiOutlineAcademicCap className="w-6 h-6 text-white" />
+                                <HiOutlineCube className="w-6 h-6 text-white" />
                             </div>
                             <div>
                                 <h1 className="text-lg font-bold text-slate-900 uppercase tracking-tight">Node Share</h1>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Repository</p>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Infrastructure</p>
                             </div>
                         </div>
                         <button onClick={onClose} className="lg:hidden text-slate-400 hover:text-slate-600">
@@ -87,17 +87,15 @@ export default function Sidebar({ isOpen, onClose }) {
                             <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Semesters</p>
                         </div>
 
-                        {semesters.map((sem, i) => (
+                        {modules.map((id, i) => (
                             <NavLink
-                                key={sem}
-                                to={`/semester/${sem}`}
+                                key={id}
+                                to={`/semester/${id}`}
                                 className={linkClass}
                                 onClick={onClose}
                             >
-                                <div className={`w-5 h-5 rounded-md bg-gradient-to-br ${semesterColors[i]} flex items-center justify-center shadow-sm`}>
-                                    <span className="text-[10px] font-bold text-white">{sem}</span>
-                                </div>
-                                Semester {sem}
+                                <HiOutlineBookOpen className={`w-5 h-5 ${i % 2 === 0 ? 'text-indigo-500' : 'text-slate-400'}`} />
+                                Semester {id}
                             </NavLink>
                         ))}
 

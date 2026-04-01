@@ -16,9 +16,9 @@ import toast from 'react-hot-toast';
 
 const API_URL = '';
 
-const categories = ['General', 'Notes', 'Assignments', 'Lab Reports', 'Question Papers', 'Syllabus', 'Reference Material'];
+const categories = ['General', 'Notes', 'Practical', 'Assignment', 'Case Studies', 'Question Papers', 'Reference Material', 'Datasets'];
 
-const semesters = [1, 2, 3, 4, 5, 6, 7, 8];
+const modules = [1, 2, 3, 4, 5, 6];
 
 function formatFileSize(bytes) {
     if (!bytes) return '—';
@@ -43,10 +43,10 @@ export default function AdminDashboard() {
     const [videoDeleteConfirm, setVideoDeleteConfirm] = useState(null);
 
     // Bulk File Upload State
-    const [semester, setSemester] = useState('1');
+    const [moduleId, setModuleId] = useState('1');
     const [category, setCategory] = useState('General');
-    const [selectedFiles, setSelectedFiles] = useState([]); 
-    const [uploadProgress, setUploadProgress] = useState({}); 
+    const [selectedFiles, setSelectedFiles] = useState([]);
+    const [uploadProgress, setUploadProgress] = useState({});
 
     // Bulk Delete State
     const [selectedResourceIds, setSelectedResourceIds] = useState([]);
@@ -55,7 +55,7 @@ export default function AdminDashboard() {
     const [videoTitle, setVideoTitle] = useState('');
     const [videoUrl, setVideoUrl] = useState('');
     const [videoSubject, setVideoSubject] = useState('');
-    const [videoSemester, setVideoSemester] = useState('1');
+    const [videoModule, setVideoModule] = useState('1');
 
     useEffect(() => {
         fetchData();
@@ -121,7 +121,7 @@ export default function AdminDashboard() {
                 const formData = new FormData();
                 formData.append('file', file);
                 formData.append('title', file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' '));
-                formData.append('semester', semester);
+                formData.append('semester', moduleId);
                 formData.append('category', category);
 
                 const res = await fetch(`/api/resources/upload`, {
@@ -196,7 +196,7 @@ export default function AdminDashboard() {
                     title: videoTitle,
                     url: videoUrl,
                     subject: videoSubject,
-                    semester: videoSemester
+                    semester: videoModule
                 })
             });
 
@@ -206,7 +206,7 @@ export default function AdminDashboard() {
             setVideoTitle('');
             setVideoUrl('');
             setVideoSubject('');
-            setVideoSemester('1');
+            setVideoModule('1');
             fetchData();
         } catch (err) {
             toast.error('Sync failed');
@@ -244,7 +244,7 @@ export default function AdminDashboard() {
                 <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform duration-700" />
                 <div className="relative z-10">
                     <h1 className="text-5xl font-black text-white tracking-tighter uppercase leading-none">Admin <span className="text-indigo-400">Terminal</span></h1>
-                    <p className="text-slate-400 mt-4 font-bold tracking-[0.3em] text-[10px] uppercase">Academic Repository Controller v2.5</p>
+                    <p className="text-slate-400 mt-4 font-bold tracking-[0.3em] text-[10px] uppercase">Academic Repository Controller v3.0</p>
                 </div>
             </div>
 
@@ -297,7 +297,7 @@ export default function AdminDashboard() {
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
-                                <select value={semester} onChange={(e) => setSemester(e.target.value)} className="input-field">{semesters.map(s => <option key={s} value={s}>Sem {s}</option>)}</select>
+                                <select value={moduleId} onChange={(e) => setModuleId(e.target.value)} className="input-field">{modules.map(s => <option key={s} value={s}>Sem {s}</option>)}</select>
                                 <select value={category} onChange={(e) => setCategory(e.target.value)} className="input-field">{categories.map(c => <option key={c} value={c}>{c}</option>)}</select>
                             </div>
 
@@ -336,8 +336,8 @@ export default function AdminDashboard() {
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block pl-1">Semester</label>
-                                    <select value={videoSemester} onChange={(e) => setVideoSemester(e.target.value)} className="input-field">{semesters.map(s => <option key={s} value={s}>Sem {s}</option>)}</select>
+                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block pl-1">Target Semester</label>
+                                    <select value={videoModule} onChange={(e) => setVideoModule(e.target.value)} className="input-field">{modules.map(s => <option key={s} value={s}>Sem {s}</option>)}</select>
                                 </div>
                             </div>
                             <button type="submit" disabled={registering} className="w-full bg-slate-900 text-white py-4 rounded-xl uppercase tracking-[0.2em] font-black text-[10px] hover:bg-slate-800 transition-all shadow-xl shadow-slate-100">

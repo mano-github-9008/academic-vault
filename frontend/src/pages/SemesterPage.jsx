@@ -16,8 +16,10 @@ const API_URL = '';
 
 const semesterNames = {
     1: 'First', 2: 'Second', 3: 'Third', 4: 'Fourth',
-    5: 'Fifth', 6: 'Sixth', 7: 'Seventh', 8: 'Eighth'
+    5: 'Fifth', 6: 'Sixth'
 };
+
+const categories = ['All', 'Notes', 'Practical', 'Assignment', 'Case Studies', 'Question Papers', 'Reference Material', 'Datasets'];
 
 function formatFileSize(bytes) {
     if (!bytes) return '—';
@@ -49,6 +51,7 @@ export default function SemesterPage() {
     const [resources, setResources] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
+    const [activeCategory, setActiveCategory] = useState('All');
     const [downloading, setDownloading] = useState(null);
 
     useEffect(() => {
@@ -107,11 +110,13 @@ export default function SemesterPage() {
     };
 
     // Filter and Group resources
-    const filtered = resources.filter((r) =>
-        r.title.toLowerCase().includes(search.toLowerCase()) ||
-        r.category?.toLowerCase().includes(search.toLowerCase()) ||
-        r.file_name?.toLowerCase().includes(search.toLowerCase())
-    );
+    const filtered = resources.filter((r) => {
+        const matchesSearch = r.title.toLowerCase().includes(search.toLowerCase()) ||
+            r.category?.toLowerCase().includes(search.toLowerCase()) ||
+            r.file_name?.toLowerCase().includes(search.toLowerCase());
+        const matchesCategory = activeCategory === 'All' || r.category === activeCategory;
+        return matchesSearch && matchesCategory;
+    });
 
     const grouped = filtered.reduce((acc, resource) => {
         const subject = getSubject(resource.file_name, resource.category);
@@ -143,11 +148,27 @@ export default function SemesterPage() {
                             type="text"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            placeholder="Filter by title or subject..."
+                            placeholder="Filter by title..."
                             className="w-full bg-white/10 border border-white/20 rounded-xl py-3 pl-12 pr-4 text-white placeholder-indigo-200 focus:outline-none focus:ring-4 focus:ring-white/10 transition-all"
                         />
                     </div>
                 </div>
+            </div>
+
+            {/* Category Filter Tags */}
+            <div className="flex flex-wrap gap-2 px-2">
+                {categories.map((cat) => (
+                    <button
+                        key={cat}
+                        onClick={() => setActiveCategory(cat)}
+                        className={`px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 border ${activeCategory === cat
+                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-100'
+                            : 'bg-white text-slate-400 border-slate-100 hover:border-indigo-200 hover:text-slate-600'
+                            }`}
+                    >
+                        {cat}
+                    </button>
+                ))}
             </div>
 
             {/* Resource Bento Grid Grouped by Subject */}
@@ -162,8 +183,8 @@ export default function SemesterPage() {
                         {search ? 'Empty result set' : 'Repository is blank'}
                     </h3>
                     <p className="text-slate-500 max-w-sm mx-auto mt-2">
-                        {search
-                            ? 'The search term returned zero matches. Try generalized keywords.'
+                        {search || activeCategory !== 'All'
+                            ? `The current filters (${activeCategory !== 'All' ? activeCategory : ''}${search ? (activeCategory !== 'All' ? ' + ' : '') + search : ''}) returned zero matches.`
                             : 'No resources have been cataloged for this semester yet.'
                         }
                     </p>

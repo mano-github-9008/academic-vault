@@ -281,4 +281,23 @@ router.post('/bulk-delete', async (req, res) => {
     }
 });
 
+// GET /api/resources/stats — metadata counts
+router.get('/stats', async (req, res) => {
+    if (!supabase) return res.status(503).json({ error: 'Database service unavailable' });
+    try {
+        const [resFiles, resVideos] = await Promise.all([
+            supabase.from('resources').select('id', { count: 'exact', head: true }),
+            supabase.from('videos').select('id', { count: 'exact', head: true })
+        ]);
+
+        res.json({
+            totalFiles: resFiles.count || 0,
+            totalVideos: resVideos.count || 0
+        });
+    } catch (err) {
+        console.error('Stats fetch error:', err);
+        res.status(500).json({ error: 'Failed to fetch statistics' });
+    }
+});
+
 module.exports = router;

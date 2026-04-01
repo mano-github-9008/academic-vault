@@ -27,7 +27,7 @@ function AppLayout() {
                     >
                         <HiOutlineMenuAlt2 className="w-6 h-6" />
                     </button>
-                    <span className="text-sm font-black text-slate-900 uppercase tracking-tighter">Academic <span className="text-indigo-600">Vault</span></span>
+                    <span className="text-sm font-black text-slate-900 uppercase tracking-tighter">Node <span className="text-indigo-600">Share</span></span>
                     <div className="w-10" /> {/* Spacer */}
                 </header>
 
